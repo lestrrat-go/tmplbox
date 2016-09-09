@@ -1,4 +1,9 @@
 # go-tmplbox
+
+[![Build Status](https://travis-ci.org/lestrrat/go-tmplbox.svg?branch=master)](https://travis-ci.org/lestrrat/go-tmplbox)
+
+[![GoDoc](https://godoc.org/github.com/lestrrat/go-tmplbox?status.svg)](https://godoc.org/github.com/lestrrat/go-tmplbox)
+
 Yet Another (text|html)/template wrapper
 
 # SYNOPSIS
