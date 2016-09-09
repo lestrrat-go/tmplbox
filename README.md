@@ -35,6 +35,13 @@ func indexHandler(w http.ResponseWriter, r *http.Response) {
     // compile and merge all of your templates.
     t, _ := box.GetOrCompose("index.html", "base.html")
 
+    // Will output 
+    // <!-- base.html -->
+    // <html>
+    // <body>
+    // Hello, World!
+    // </body>
+    // </html>
     t.ExecuteTemplate(w, "root", nil)
 }
 ```
