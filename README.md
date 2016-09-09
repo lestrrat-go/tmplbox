@@ -27,8 +27,8 @@ var box := tmplbox.New(tmplbox.AssetSourceFunc(Asset))
 func indexHandler(w http.ResponseWriter, r *http.Response) {
     // Assuming you have a dependency between index.html and
     // base.html (see above), GetOrCompose will automatically
-    // compile and merge all of your templates
-    t, _ := box.GetOrCompose("index.html", "index.html", "base.html")
+    // compile and merge all of your templates.
+    t, _ := box.GetOrCompose("index.html", "base.html")
 
     t.ExecuteTemplate(w, "root", nil)
 }

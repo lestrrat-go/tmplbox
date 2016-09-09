@@ -16,8 +16,8 @@ func New(assets AssetSource) *Box {
 }
 
 // Compose creates a template instance using the templates
-// specified in `names`.
-func (b *Box) Compose(name string, names ...string) (Template, error) {
+// specified in `name` and `deps`.
+func (b *Box) Compose(name string, deps ...string) (Template, error) {
 	var newFn newFunc
 	if strings.HasSuffix(name, ".html") {
 		newFn = newHTML
@@ -26,7 +26,8 @@ func (b *Box) Compose(name string, names ...string) (Template, error) {
 	}
 
 	t := newFn(name)
-	for _, tname := range names {
+	tmpls := append([]string{name}, deps...)
+	for _, tname := range tmpls {
 		tmp, err := b.Compile(tname)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to compile template %s", tname)
@@ -145,17 +146,13 @@ func (b *Box) Set(name string, t Template) error {
 //
 // If names is empty, `name` is assumed to be the target
 // asset name to compile
-func (b *Box) GetOrCompose(name string, names ...string) (Template, error) {
+func (b *Box) GetOrCompose(name string, deps ...string) (Template, error) {
 	t, err := b.Get(name)
 	if err == nil {
 		return t, nil
 	}
 
-	if len(names) == 0 {
-		names = append(names, name)
-	}
-
-	t, err = b.Compose(name, names...)
+	t, err = b.Compose(name, deps...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to compose new template")
 	}
