@@ -45,3 +45,8 @@ func indexHandler(w http.ResponseWriter, r *http.Response) {
     t.ExecuteTemplate(w, "root", nil)
 }
 ```
+
+# FEATURES
+
+* Plays well with go-bindata
+* Easy to setup template dependency to emulate "extends", without another big library
