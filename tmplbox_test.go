@@ -35,15 +35,19 @@ func TestComposedTemplates(t *testing.T) {
 		t.Logf("Loading %s", s)
 		switch s {
 		case "hello.html":
-			return []byte(`{{ define "content" }}Hello, World!{{ end }}`), nil
+			return []byte(`{{ define "content" }}Hello, {{ world }}{{ end }}`), nil
 		case "base.html":
 			return []byte(`{{ define "root" }}content: {{ block "content" . }}{{ end }}{{ end }}`), nil
 		}
 		return nil, errors.New("not found")
 	}
 
-	box := tmplbox.New(tmplbox.AssetSourceFunc(f))
-	tmpl, err := box.GetOrCompose("hello.html", "hello.html", "base.html")
+	box := tmplbox.New(tmplbox.AssetSourceFunc(f)).Funcs(
+		tmplbox.FuncMap{
+			"world": func() string { return "World!" },
+		},
+	)
+	tmpl, err := box.GetOrCompose("hello.html", "base.html")
 	if !assert.NoError(t, err, "GetOrCompose should succeed") {
 		return
 	}
@@ -56,4 +60,6 @@ func TestComposedTemplates(t *testing.T) {
 	if !assert.Equal(t, "content: Hello, World!", buf.String()) {
 		return
 	}
+
+	t.Logf("%s", buf.String())
 }

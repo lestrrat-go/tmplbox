@@ -7,6 +7,7 @@ import (
 
 type Box struct {
 	assets       AssetSource
+	funcs        FuncMap
 	storageMutex sync.RWMutex
 	templates    map[string]Template
 }

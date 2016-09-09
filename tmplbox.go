@@ -15,17 +15,25 @@ func New(assets AssetSource) *Box {
 	}
 }
 
+type FuncMap map[string]interface{}
+
+// Funcs specifies the set of template functions that will be
+// applied to all templates that are compiled
+func (b *Box) Funcs(fm FuncMap) *Box {
+	b.funcs = fm
+	return b
+}
+
 // Compose creates a template instance using the templates
 // specified in `name` and `deps`.
 func (b *Box) Compose(name string, deps ...string) (Template, error) {
-	var newFn newFunc
+	var t Template
 	if strings.HasSuffix(name, ".html") {
-		newFn = newHTML
+		t = newHTML(name, b.funcs)
 	} else {
-		newFn = newText
+		t = newText(name, b.funcs)
 	}
 
-	t := newFn(name)
 	tmpls := append([]string{name}, deps...)
 	for _, tname := range tmpls {
 		tmp, err := b.Compile(tname)
@@ -84,20 +92,28 @@ func addParseTree(t1, t2 Template) (Template, error) {
 
 type newFunc func(string) Template
 
-func newHTML(s string) Template {
-	return htemplate.New(s)
+func newHTML(s string, fm FuncMap) *htemplate.Template {
+	t := htemplate.New(s)
+	if fm != nil {
+		t = t.Funcs(htemplate.FuncMap(fm))
+	}
+	return t
 }
-func newText(s string) Template {
-	return ttemplate.New(s)
+func newText(s string, fm FuncMap) *ttemplate.Template {
+	t := ttemplate.New(s)
+	if fm != nil {
+		t = t.Funcs(ttemplate.FuncMap(fm))
+	}
+	return t
 }
 
-type compileFunc func(string, []byte) (Template, error)
+type compileFunc func(string, []byte, FuncMap) (Template, error)
 
-func compileHTML(s string, b []byte) (Template, error) {
-	return htemplate.New(s).Parse(string(b))
+func compileHTML(s string, b []byte, fm FuncMap) (Template, error) {
+	return newHTML(s, fm).Parse(string(b))
 }
-func compileText(s string, b []byte) (Template, error) {
-	return ttemplate.New(s).Parse(string(b))
+func compileText(s string, b []byte, fm FuncMap) (Template, error) {
+	return newText(s, fm).Parse(string(b))
 }
 
 // Compile compiles the template specified the given name.
@@ -116,10 +132,10 @@ func (b *Box) Compile(name string) (Template, error) {
 		return nil, errors.Wrap(err, "failed to get source for specified template")
 	}
 
-	return compileFn(name, buf)
+	return compileFn(name, buf, b.funcs)
 }
 
-// Get returns the template associated with `name`.
+// Get returns the template associated with asset `name`.
 // An error is returned if the template does not exist.
 func (b *Box) Get(name string) (Template, error) {
 	b.storageMutex.RLock()
@@ -143,9 +159,6 @@ func (b *Box) Set(name string, t Template) error {
 // named by `name` does not exist already, it will call
 // Compose to generate it. Otherwise this methods turns a
 // previously cached copy.
-//
-// If names is empty, `name` is assumed to be the target
-// asset name to compile
 func (b *Box) GetOrCompose(name string, deps ...string) (Template, error) {
 	t, err := b.Get(name)
 	if err == nil {
