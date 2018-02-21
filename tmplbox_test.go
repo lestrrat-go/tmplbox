@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/lestrrat/go-tmplbox"
+	"github.com/lestrrat-go/tmplbox"
 	"github.com/stretchr/testify/assert"
 )
 
